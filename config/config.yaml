@@ -117,3 +117,9 @@ chat_engine:
           model_name:                   # The name of the model to use for encoding
             text-embedding-ada-002
           batch_size: 400               # The number of document chunks to encode in each call to the encoding model
+
+      reranker:
+        type: CohereReranker
+        params:
+          model_name: rerank-english-v2.0
+          top_n: 5
