@@ -20,7 +20,8 @@ class CohereReranker(Reranker):
     def __init__(self,
                  api_key: Optional[str] = None,
                  model_name: str = 'rerank-english-v2.0',
-                 top_n: int = 10):
+                 top_n: int = 10,
+                 threshold: float = 0.0):
         """
         Initialize the Cohere reranker.
 
@@ -37,6 +38,7 @@ class CohereReranker(Reranker):
         self._client = cohere.Client(api_key=api_key)
         self._model_name = model_name
         self._top_n = int(top_n)
+        self._threshold = float(threshold)
 
     def rerank(self, results: List[KBQueryResult]) -> List[KBQueryResult]:
         reranked: List[KBQueryResult] = []
@@ -48,8 +50,9 @@ class CohereReranker(Reranker):
                                            model=self._model_name, )
             reranked_docs = []
             for r in response:
-                reranked_docs.append(deepcopy(q_res.documents[r.index]))
-                reranked_docs[-1].score = r.relevance_score
+                if r.relevance_score >= self._threshold:
+                    reranked_docs.append(deepcopy(q_res.documents[r.index]))
+                    reranked_docs[-1].score = r.relevance_score
 
             reranked.append(KBQueryResult(query=q_res.query,
                                           documents=reranked_docs))
